@@ -1,0 +1,16 @@
+{
+  "name": "clonesmasher",
+  "version": "1.0.0",
+  "description": "The best open source agario clone bots",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "DaRealSh0T",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "proxy-agent": "^3.0.3",
+    "request": "^2.88.0",
+    "ws": "^6.2.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+	"botNames": [
+		"Clone Smasher"
+	],
+	"account": "",
+	"useProxyApi": true,
+	"useAccount": false,
+	"maxBots": 100
+}
