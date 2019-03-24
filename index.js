@@ -34,7 +34,7 @@ if (fs.existsSync('./config.json')) {
 } else {
 	let _default = {};
 	_default.botNames = ["Sh0T's Bots", "Free Bots"];
-	_default.account = "";
+	_default.accounts = [""];
 	_default.useProxyApi = true;
 	_default.useAccount = false;
 	_default.maxBots = 100;
@@ -153,9 +153,10 @@ class Bot {
 
 	agarHubLogin() {
 		let loginBuffer = Buffer.alloc(1 + Buffer.byteLength(config.account, 'ucs2'));
+		let account = config.accounts[Math.floor(Math.random() * config.accounts.length)];
 
 		loginBuffer.writeUInt8(30, 0);
-		loginBuffer.write(config.account, 1, 'ucs2');
+		loginBuffer.write(account, 1, 'ucs2');
 		this.send(loginBuffer);
 	}
 
