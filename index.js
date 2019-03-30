@@ -206,8 +206,8 @@ class Bot {
 	}
 
 	agarHubLogin() {
-		let loginBuffer = Buffer.alloc(1 + Buffer.byteLength(config.account, 'ucs2'));
 		let account = config.accounts[Math.floor(Math.random() * config.accounts.length)];
+		let loginBuffer = Buffer.alloc(1 + Buffer.byteLength(account, 'ucs2'));
 
 		loginBuffer.writeUInt8(30, 0);
 		loginBuffer.write(account, 1, 'ucs2');
@@ -263,11 +263,36 @@ class Bot {
 				break;
 			case 'balz.io':
 				name = '(' + this.sId + ')' + name;
-				spawnBuffer = Buffer.alloc(1 + Buffer.byteLength(name, 'ucs2'));
+				spawnBuffer = Buffer.alloc(1 + Buffer.byteLength(name, 'utf8'));
 				spawnBuffer.write(name, 1, 'utf8');
 				break;
 		}
 		this.send(spawnBuffer);
+	}
+
+	sendChat(message) {
+		let chatBuffer;
+		switch (this.originSplit) {
+			case 'agar.bio':
+			case 'cellcraft.io':
+			case 'www.cellcraft.io':
+			case 'bomb.agar.bio':
+			case 'm.agar.bio':
+			case 'agarios.org':
+			case 'army.ovh':
+			case 'play.agario0.com':
+				chatBuffer = Buffer.alloc(2 + message.length * 2);
+				chatBuffer.writeUInt8(99, 0);
+				chatBuffer.write(message, 2, 'ucs2');
+				break;
+			case 'balz.io':
+			case 'targ.io':
+				chatBuffer = Buffer.alloc(3 + message.length);
+				chatBuffer.writeUInt8(99, 0);
+				chatBuffer.write(message, 2, 'utf8');
+				break;
+		}
+		this.send(chatBuffer);
 	}
 
 	onmessage(message) {} //not needed at the moment
@@ -338,6 +363,12 @@ class Client {
 			case 'split':
 				this.bots.forEach(bot => {
 					bot.send(Buffer.from([17]));
+				});
+				break;
+
+			case 'chat':
+				this.bots.forEach(bot => {
+					bot.sendChat(json.msg);
 				});
 				break;
 

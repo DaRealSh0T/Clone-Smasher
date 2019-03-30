@@ -89,6 +89,15 @@ class User {
 
 	}
 
+	sendChat(message) {
+		let json = {};
+
+		json.type = "chat";
+		json.msg = message;
+
+		this.send(json);
+	}
+
 	onmessage(message) {
 		message = JSON.parse(message.data);
 
@@ -174,6 +183,11 @@ class User {
 					type: 'eject'
 				});
 				break;
+
+				case 'c':
+					let msg = prompt('What do you want the bots to say?', 'Clone Smasher');
+					if (msg) this.sendChat(msg);
+					break;
 
 		}
 	}
