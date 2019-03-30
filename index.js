@@ -73,9 +73,11 @@ class Bot {
 		this.stopped = true;
 		this.ws = null;
 		this.ip = null;
+		this.sId = 0;
 	}
 
-	connect(ip) {
+	connect(ip, balz) {
+		if (!balz && this.originSplit == 'balz.io') return this.balz(ip);
 		this.stopped = false;
 		this.ip = ip;
 		this.headers.Origin = this.origin;
@@ -88,6 +90,27 @@ class Bot {
 		this.ws.onmessage = this.onmessage.bind(this);
 		this.ws.onerror = this.onerror.bind(this);
 		this.ws.onclose = this.onclose.bind(this);
+	}
+
+	balz(ip) {
+		let finIp = ip.split('?')[0];
+		let ws = new WebSocket('wss://balz.io/gateway', {
+			agent: this.proxy
+		});
+		ws.onclose = ws.onerror = ws.onopen = () => {};
+		ws.onmessage = msg => {
+			msg = JSON.parse(msg.data);
+			switch (msg[0]) {
+				case 0:
+					this.sId = msg[1][0];
+					finIp += '?session=' + msg[1][1];
+					this.connect(finIp, true);
+					break;
+				case 1:
+					ws.send('[1]');
+					break;
+			}
+		};
 	}
 
 	onopen() {
@@ -107,12 +130,27 @@ class Bot {
 				inits.writeUInt32LE(5, 1);
 				break;
 			case 'targ.io':
+			case 'balz.io':
 				inits.writeUInt32LE(6, 1);
+				break;
+			case 'senpa.io':
+				let strings = ['onxcnk_101', Math.random().toString(36).substr(2, 5)];
+				let stringsLen = 0;
+				strings.map(a => stringsLen += a.length * 2);
+				inits = Buffer.alloc(1 + strings.length * 2 + stringsLen);
+				var i = 0;
+				inits.writeUInt8(252, i++);
+				strings.forEach(string => {
+					inits.writeUInt16LE(string.length, i);
+					i += 2;
+					inits.write(string, i, 'ucs2');
+					i += string.length * 2;
+				});
 				break;
 		}
 		this.send(inits);
 
-
+		inits = Buffer.alloc(5);
 		inits.writeUInt8(255, 0);
 		switch (this.originSplit) {
 			case 'agariohub.io':
@@ -129,7 +167,23 @@ class Bot {
 				inits.writeUInt32LE(1332775218, 1);
 				break;
 			case 'targ.io':
+			case 'balz.io':
 				inits.writeUInt32LE(1, 1);
+				break;
+			case 'senpa.io':
+				let strings = [config.botNames[Math.floor(Math.random() * config.botNames.length)], '', '', '', ''];
+				let stringsLen = 0;
+				strings.map(a => stringsLen += a.length * 2);
+				inits = Buffer.alloc(1 + strings.length * 2 + stringsLen);
+				var i = 0;
+				inits.writeUInt8(30, i++);
+				strings.forEach(string => {
+					inits.writeUInt16LE(string.length, i);
+					i += 2;
+					inits.write(string, i, 'ucs2');
+					i += string.length * 2;
+				});
+				this.send(new Buffer.from([130]));
 				break;
 		}
 		this.send(inits);
@@ -139,7 +193,7 @@ class Bot {
 			case 'www.cellcraft.io':
 				this.send(Buffer.from([42]));
 				break;
-			case 'cellul.us':
+			case 'balz.io':
 				setInterval(() => {
 					this.send(Buffer.from([254]));
 				}, 1000);
@@ -183,7 +237,7 @@ class Bot {
 		let spawnBuffer = null;
 		switch (this.originSplit) {
 			case 'agariohub.io':
-				name = this.nameBypass() + '&' + config.botNames[Math.floor(Math.random() * config.botNames.length)];
+				name = this.nameBypass() + '&' + name;
 			case 'agar.bio':
 			case 'bomb.agar.bio':
 			case 'm.agar.bio':
@@ -201,6 +255,15 @@ class Bot {
 				break;
 			case 'targ.io':
 				spawnBuffer = Buffer.alloc(1 + Buffer.byteLength(name, 'utf8'));
+				spawnBuffer.write(name, 1, 'utf8');
+				break;
+			case 'senpa.io':
+				this.send(new Buffer.from([130]));
+				spawnBuffer = Buffer.from([31]);
+				break;
+			case 'balz.io':
+				name = '(' + this.sId + ')' + name;
+				spawnBuffer = Buffer.alloc(1 + Buffer.byteLength(name, 'ucs2'));
 				spawnBuffer.write(name, 1, 'utf8');
 				break;
 		}
@@ -261,7 +324,7 @@ class Client {
 
 			case 'start':
 				this.startBots(json.ip, this.origin);
-				console.log('user started bots')
+				console.log('user started bots on ', this.origin)
 				break;
 
 			case 'stop':

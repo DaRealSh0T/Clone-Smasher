@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Agariohub Smasher
+// @name         Clone Smasher
 // @namespace    https://youtube.com/DaRealSh0Tv2
 // @version      1
 // @description  The BEST agariohub bots!
@@ -10,6 +10,8 @@
 // @match        *.army.ovh/web/*
 // @match        *.targ.io/*
 // @match        *play.agario0.com/*
+// @match        *.senpa.io/web/*
+// @match        *.balz.io/*
 // @match        *www.agar-kicoo.tk*
 // @grant        none
 // @run-at       document-start
@@ -185,6 +187,7 @@ window.addEventListener("load", () => {
 	WebSocket.prototype.realSend = WebSocket.prototype.send;
 	WebSocket.prototype.send = function (pkt) {
 		this.realSend(pkt);
+		if (typeof pkt == 'string') return;
 		if (this.url.includes('localhost')) return;
 		if (pkt instanceof ArrayBuffer) pkt = new DataView(pkt);
 		else if (pkt instanceof DataView) pkt = pkt;
