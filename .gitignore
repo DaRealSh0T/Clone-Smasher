@@ -1,0 +1,4 @@
+
+*.cmd
+*.ps1
+node_modules

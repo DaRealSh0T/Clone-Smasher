@@ -1,10 +1,10 @@
-const proxyAgent = require('proxy-agent');
-const request = require('request');
 const WebSocket = require('ws');
+const proxyManager = require('./modules/proxymanager.js')
 const fs = require('fs');
 const defaultHeaders = {};
 
 console.log('Bots made by DaRealSh0T');
+console.log('Updated by keksbyte : ) ) ');
 
 defaultHeaders["Accept-Encoding"] = "gzip, deflate";
 defaultHeaders["Accept-Language"] = "en-CA,en-GB;q=0.9,en-US;q=0.8,en;q=0.7";
@@ -15,21 +15,14 @@ defaultHeaders["Pragma"] = "no-cache";
 defaultHeaders["Sec-WebSocket-Extensions"] = "permessage-deflate; client_max_window_bits";
 defaultHeaders["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36";
 
-let allProxyAgents = [];
 let connectedUsers = 0;
-let proxyAgents = [];
 let config = {};
-
-function getProxy() {
-	if (proxyAgents.length == 0) proxyAgents = allProxyAgents;
-	return proxyAgents.shift();
-}
 
 if (fs.existsSync('./config.json')) {
 	fs.readFile('./config.json', (err, data) => {
 		let text = Buffer.from(data).toString();
 		config = JSON.parse(text);
-		getProxys();
+		proxyManager.scrapeProxys(config.useProxyApi);
 	});
 } else {
 	let _default = {};
@@ -42,33 +35,13 @@ if (fs.existsSync('./config.json')) {
 	config = _default;
 }
 
-function getProxys() {
-	if (config.useProxyApi) {
-		request('https://www.proxy-list.download/api/v1/get?type=socks5', (err, req, body) => {
-			let proxies = body.replace(/\r/g, '').split('\n');
-			proxies.forEach(proxy => {
-				allProxyAgents.push(new proxyAgent(`socks://${proxy}`));
-			});
-			console.log(`Got ${proxies.length} proxies!`);
-		});
-	} else {
-		fs.readFile('./proxies.txt', (err, data) => {
-			let proxies = data.toString().replace(/\r/g, '').split('\n');
-			proxies.forEach(proxy => {
-				allProxyAgents.push(new proxyAgent(`socks://${proxy}`));
-			});
-			console.log(`Got ${proxies.length} proxies!`);
-		});
-	}
-}
-
 class Bot {
 
 	constructor(origin) {
 		this.headers = JSON.parse(JSON.stringify(defaultHeaders));
 		this.originSplit = origin.split('/')[2];
 		this.nameInterval = null;
-		this.proxy = getProxy();
+		this.proxy = proxyManager.getProxy();
 		this.origin = origin;
 		this.stopped = true;
 		this.ws = null;
@@ -306,7 +279,7 @@ class Bot {
 	onclose(error) {
 		clearInterval(this.nameInterval);
 		if (this.stopped) return;
-		this.proxy = getProxy();
+		this.proxy = proxyManager.getProxy();
 
 		if (this.ip)
 			this.connect(this.ip);
