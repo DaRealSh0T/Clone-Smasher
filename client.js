@@ -193,38 +193,93 @@ class User {
 	}
 
 }
+if (location.host.includes('agma.io') || location.host.includes('cellcraft.io')) {
+    let client = null;
+	window.WebSocket = class extends WebSocket {
+		constructor() {
+			let ws = super(...arguments);
+			window.sockets?.push(this);
 
-window.addEventListener("load", () => {
-	const client = new User();
-	document.addEventListener('keydown', client.keyDown.bind(client));
-
-	WebSocket.prototype.realSend = WebSocket.prototype.send;
-	WebSocket.prototype.send = function (pkt) {
-		this.realSend(pkt);
-		if (typeof pkt == 'string') return;
-		if (this.url.includes('localhost')) return;
-		if (pkt instanceof ArrayBuffer) pkt = new DataView(pkt);
-		else if (pkt instanceof DataView) pkt = pkt;
-		else pkt = new DataView(pkt.buffer);
-		switch (pkt.getUint8(0, true)) {
-			case 16:
-				client.byteLen = pkt.byteLength;
-
-				switch (pkt.byteLength) {
-					case 13:
-					case 9:
-						client.x = pkt.getInt32(1, true);
-						client.y = pkt.getInt32(5, true);
-						break;
-					case 21:
-						client.x = pkt.getFloat64(1, true);
-						client.y = pkt.getFloat64(9, true);
-						break;
-				}
-				break;
+			setTimeout(() => {
+				ws.onmessage = new Proxy(ws.onmessage, {
+					apply(target, thisArg, argArray) {
+						let data = argArray[0].data;
+						return target.apply(thisArg, argArray);
+					}
+				});
+			});
 		}
-		if (client.server !== this.url) {
-			client.server = this.url;
+	}
+
+	WebSocket.prototype.send = new Proxy(WebSocket.prototype.send, {
+		apply(target, thisArg, argArray) {
+            var res = target.apply(thisArg, argArray);
+			let pkt = argArray[0];
+            if (!client) return;
+            if (typeof pkt == 'string') return res;
+            if (thisArg.url.includes('localhost')) return res;
+			if (pkt instanceof ArrayBuffer) pkt = new DataView(pkt);
+            else if (pkt instanceof DataView) pkt = pkt;
+            else pkt = new DataView(pkt.buffer);
+            switch (pkt.getUint8(0, true)) {
+                case 16:
+                    client.byteLen = pkt.byteLength;
+
+                    switch (pkt.byteLength) {
+                        case 13:
+                        case 9:
+                            client.x = pkt.getInt32(1, true);
+                            client.y = pkt.getInt32(5, true);
+                            break;
+                        case 21:
+                            client.x = pkt.getFloat64(1, true);
+                            client.y = pkt.getFloat64(9, true);
+                            break;
+                    }
+                    break;
+            }
+            if (client.server !== thisArg.url) {
+                client.server = thisArg.url;
+            }
+			return res;
 		}
-	};
-});
+	});
+	window.addEventListener('load', () => {
+		client = new User();
+    });
+} else {
+    window.addEventListener("load", () => {
+        const client = new User();
+        document.addEventListener('keydown', client.keyDown.bind(client));
+
+        WebSocket.prototype.realSend = WebSocket.prototype.send;
+        WebSocket.prototype.send = function (pkt) {
+            this.realSend(pkt);
+            if (typeof pkt == 'string') return;
+            if (this.url.includes('localhost')) return;
+            if (pkt instanceof ArrayBuffer) pkt = new DataView(pkt);
+            else if (pkt instanceof DataView) pkt = pkt;
+            else pkt = new DataView(pkt.buffer);
+            switch (pkt.getUint8(0, true)) {
+                case 16:
+                    client.byteLen = pkt.byteLength;
+
+                    switch (pkt.byteLength) {
+                        case 13:
+                        case 9:
+                            client.x = pkt.getInt32(1, true);
+                            client.y = pkt.getInt32(5, true);
+                            break;
+                        case 21:
+                            client.x = pkt.getFloat64(1, true);
+                            client.y = pkt.getFloat64(9, true);
+                            break;
+                    }
+                    break;
+            }
+            if (client.server !== this.url) {
+                client.server = this.url;
+            }
+        };
+    });
+}
