@@ -1,6 +1,7 @@
-const WebSocket = require('ws');
-const proxyManager = require('./modules/proxymanager.js')
-const fs = require('fs');
+import { getProxy } from  "./proxyManager.js"
+import { getConfig } from  "../server.js"
+import WebSocket from 'ws';
+//import * as fs from 'fs';
 const defaultHeaders = {};
 
 console.log('Bots made by DaRealSh0T');
@@ -15,14 +16,13 @@ defaultHeaders["Pragma"] = "no-cache";
 defaultHeaders["Sec-WebSocket-Extensions"] = "permessage-deflate; client_max_window_bits";
 defaultHeaders["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36";
 
-let connectedUsers = 0;
 let config = {};
 
-if (fs.existsSync('./config.json')) {
-	fs.readFile('./config.json', (err, data) => {
+/*if (fs.existsSync('./getConfig().json')) {
+	fs.readFile('./getConfig().json', (err, data) => {
 		let text = Buffer.from(data).toString();
 		config = JSON.parse(text);
-		proxyManager.scrapeProxys(config.useProxyApi);
+		proxyManager.scrapeProxys(getConfig().useProxyApi);
 	});
 } else {
 	let _default = {};
@@ -31,17 +31,17 @@ if (fs.existsSync('./config.json')) {
 	_default.useProxyApi = true;
 	_default.useAccount = false;
 	_default.maxBots = 100;
-	fs.writeFile('config.json', Buffer.from(JSON.stringify(_default, null, 2)), () => {});
+	fs.writeFile('getConfig().json', Buffer.from(JSON.stringify(_default, null, 2)), () => {});
 	config = _default;
-}
+}*/
 
-class Bot {
+ class Bot {
 
 	constructor(origin) {
 		this.headers = JSON.parse(JSON.stringify(defaultHeaders));
 		this.originSplit = origin.split('/')[2];
 		this.nameInterval = null;
-		this.proxy = proxyManager.getProxy();
+		this.proxy = getProxy();
 		this.origin = origin;
 		this.stopped = true;
 		this.ws = null;
@@ -92,6 +92,7 @@ class Bot {
 		switch (this.originSplit) {
 			case 'agariohub.io':
 			case 'agar.bio':
+			case '*.agar.bio':
 			case 'bomb.agar.bio':
 			case 'm.agar.bio':
 			case 'play.agario0.com':
@@ -128,12 +129,13 @@ class Bot {
 		switch (this.originSplit) {
 			case 'agariohub.io':
 			case 'agar.bio':
+			case '*.agar.bio':
 			case 'bomb.agar.bio':
 			case 'm.agar.bio':
 			case 'army.ovh':
 			case 'play.agario0.com':
 				inits.writeUInt32LE(1332175218, 1);
-				if (config.useAccount && this.originSplit == 'agariohub.io') this.agarHubLogin();
+				if (getConfig().useAccount && this.originSplit == 'agariohub.io') this.agarHubLogin();
 				break;
 			case 'cellcraft.io':
 			case 'www.cellcraft.io':
@@ -144,7 +146,7 @@ class Bot {
 				inits.writeUInt32LE(1, 1);
 				break;
 			case 'senpa.io':
-				let strings = [config.botNames[Math.floor(Math.random() * config.botNames.length)], '', '', '', ''];
+				let strings = [getConfig().botNames[Math.floor(Math.random() * getConfig().botNames.length)], '', '', '', ''];
 				let stringsLen = 0;
 				strings.map(a => stringsLen += a.length * 2);
 				inits = Buffer.alloc(1 + strings.length * 2 + stringsLen);
@@ -179,7 +181,7 @@ class Bot {
 	}
 
 	agarHubLogin() {
-		let account = config.accounts[Math.floor(Math.random() * config.accounts.length)];
+		let account = getConfig().accounts[Math.floor(Math.random() * getConfig().accounts.length)];
 		let loginBuffer = Buffer.alloc(1 + Buffer.byteLength(account, 'ucs2'));
 
 		loginBuffer.writeUInt8(30, 0);
@@ -206,12 +208,13 @@ class Bot {
 	}
 
 	spawn() {
-		let name = config.botNames[Math.floor(Math.random() * config.botNames.length)];
+		let name = getConfig().botNames[Math.floor(Math.random() * getConfig().botNames.length)];
 		let spawnBuffer = null;
 		switch (this.originSplit) {
 			case 'agariohub.io':
 				name = this.nameBypass() + '&' + name;
 			case 'agar.bio':
+			case '*.agar.bio':
 			case 'bomb.agar.bio':
 			case 'm.agar.bio':
 			case 'agarios.org':
@@ -247,6 +250,7 @@ class Bot {
 		let chatBuffer;
 		switch (this.originSplit) {
 			case 'agar.bio':
+			case '*.agar.bio':
 			case 'cellcraft.io':
 			case 'www.cellcraft.io':
 			case 'bomb.agar.bio':
@@ -279,7 +283,7 @@ class Bot {
 	onclose(error) {
 		clearInterval(this.nameInterval);
 		if (this.stopped) return;
-		this.proxy = proxyManager.getProxy();
+		this.proxy = getProxy();
 
 		if (this.ip)
 			this.connect(this.ip);
@@ -294,147 +298,4 @@ class Bot {
 
 }
 
-class Client {
-
-	constructor(ws, req) {
-		this.origin = req.headers.origin;
-		this.botConnectInt = [];
-		this.started = false;
-		this.bots = [];
-		this.ws = ws;
-		this.setup();
-		connectedUsers++;
-		console.log(`A user has connected! Connected users: ${connectedUsers}`);
-	}
-
-	setup() {
-		this.ws.on('message', this.onmessage.bind(this));
-		this.ws.on('close', this.onclose.bind(this));
-		this.ws.on('error', this.onerror.bind(this));
-		for (let i = 0; i < config.maxBots; i++)
-			this.bots.push(new Bot(this.origin));
-		this.startBotCount();
-	}
-
-	onmessage(message) {
-		const json = JSON.parse(message);
-		switch (json.type) {
-
-			case 'start':
-				this.startBots(json.ip, this.origin);
-				console.log('user started bots on ', this.origin)
-				break;
-
-			case 'stop':
-				this.stopBots();
-				break;
-
-			case 'updatePos':
-				this.sendBotPos(json.x, json.y, json.byteLen);
-				break;
-
-			case 'split':
-				this.bots.forEach(bot => {
-					bot.send(Buffer.from([17]));
-				});
-				break;
-
-			case 'chat':
-				this.bots.forEach(bot => {
-					bot.sendChat(json.msg);
-				});
-				break;
-
-			case 'eject':
-				this.bots.forEach(bot => {
-					bot.send(Buffer.from([21]));
-					bot.send(Buffer.from([36]));
-				});
-				break;
-		}
-	}
-
-	sendBotPos(x, y, byteLen) {
-		if (!byteLen) return;
-		let mouseBuffer = Buffer.alloc(byteLen);
-
-		mouseBuffer.writeUInt8(16, 0);
-		switch (byteLen) {
-			case 13:
-			case 9:
-				mouseBuffer.writeInt32LE(x, 1);
-				mouseBuffer.writeInt32LE(y, 5);
-				break;
-			case 21:
-				mouseBuffer.writeDoubleLE(x, 1);
-				mouseBuffer.writeDoubleLE(y, 9);
-				break;
-		}
-
-		this.bots.forEach(bot => {
-			bot.send(mouseBuffer);
-		});
-	}
-
-	startBotCount() {
-		this.botCountInt = setInterval(() => {
-			let json = {
-				type: 'botCount',
-				connected: 0,
-				maxBots: config.maxBots
-			};
-			this.bots.forEach(bot => {
-				if (bot.ws && bot.ws.readyState == 1)
-					json.connected++;
-			});
-			this.send(json);
-		}, 100);
-	}
-
-	stopBotCount() {
-		clearInterval(this.botCountInt);
-	}
-
-	onclose() {
-		this.stopBots();
-		this.stopBotCount();
-		connectedUsers--;
-		console.log(`A user has disconnected! Connected users: ${connectedUsers}`);
-	}
-
-	stopBots() {
-		if (!this.started) return;
-		clearInterval(this.botInterval);
-		this.bots.forEach(bot => {
-			bot.close();
-		});
-		this.botConnectInt.forEach(clearInterval);
-		this.started = false;
-	}
-
-	startBots(serverip) {
-		if (this.started) return;
-		this.bots.forEach((bot, i) => {
-			this.botConnectInt.push(setTimeout(() => {
-				if (!this.started) return;
-				bot.connect(serverip);
-			}, 300 * i));
-		});
-		this.started = true;
-	}
-
-	onerror() {}
-
-	send(message) {
-		if (this.ws && this.ws.readyState == 1) this.ws.send(JSON.stringify(message));
-	}
-
-}
-
-const wss = new WebSocket.Server({
-	port: 3523
-});
-
-wss.on('connection', (ws, req) => {
-	ws.Client = new Client(ws, req);
-});
+export { Bot };
