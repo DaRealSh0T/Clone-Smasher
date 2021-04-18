@@ -1,4 +1,4 @@
-import Request from 'request';
+import axios from 'axios';
 import ProxyAgent from 'proxy-agent';
 import * as fs from 'fs';
 
@@ -10,21 +10,28 @@ export function getProxy() {
 }
 
 export function scrapeProxys(scrape) {
-    if(scrape) {
-        Request('https://www.proxy-list.download/api/v1/get?type=socks5', (err, req, body) => {
-            let proxies = body.replace(/\r/g, '').split('\n');
+    return new Promise(async (resolve, reject) => {
+        if (scrape) {
+            let { data } = await axios.get('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4&timeout=10000&country=all').catch((err) => {
+                console.log("Failed to fetch proxy api, falling back to file.");
+                return { data: '' };
+            });
+            if (!data) return resolve(await scrapeProxys(false));
+            let proxies = data.replace(/\r/g, '').split('\n');
             proxies.forEach(proxy => {
-                allProxyAgents.push(new ProxyAgent(`socks://${proxy}`));
+                allProxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
             });
             console.log(`Got ${proxies.length} proxies!`);
-        });
-    } else {
-        fs.readFile('./proxies.txt', (err, data) => {
-            let proxies = data.toString().replace(/\r/g, '').split('\n');
-            proxies.forEach(proxy => {
-                allProxyAgents.push(new ProxyAgent(`socks://${proxy}`));
+            resolve(proxies);
+        } else {
+            fs.readFile('./proxies.txt', (err, data) => {
+                let proxies = data.toString().replace(/\r/g, '').split('\n');
+                proxies.forEach(proxy => {
+                    allProxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
+                });
+                console.log(`Got ${proxies.length} proxies!`);
+                resolve(proxies);
             });
-            console.log(`Got ${proxies.length} proxies!`);
-        });
-    }
+        }
+    });
 }

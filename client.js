@@ -1,23 +1,25 @@
 // ==UserScript==
 // @name         Clone Smasher
 // @namespace    https://youtube.com/DaRealSh0Tv2
-// @version      1
-// @description  The BEST agariohub bots!
-// @author       DaRealSh0T
-// @match        *.agariohub.io/client/*
-// @match        *.agar.bio/*
-// @match        *.cellcraft.io/*
-// @match        *.army.ovh/web/*
-// @match        *.targ.io/*
-// @match        *play.agario0.com/*
-// @match        *.senpa.io/web/*
-// @match        *.balz.io/*
-// @match        *www.agar-kicoo.tk*
+// @version      1.0.1
+// @description  The BEST agar clone bots!
+// @author       DaRealSh0T & keksbyte
+// @match        *imbig.pro/*
+// @match        *myagar.pro/web/*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
 
-
+if (location.origin.includes('imbig.pro') || location.origin.includes('myagar.pro')) {
+	window.addEventListener('DOMContentLoaded', () => {
+		window.aiptag = {
+			adplayer: 'yes',
+			cmd: {
+				display: []
+			}
+		};
+	});
+}
 const observer = new MutationObserver(mutations => {
 	mutations.forEach(({
 		addedNodes
@@ -31,8 +33,10 @@ const observer = new MutationObserver(mutations => {
 						setNick(document.getElementById('nick').value);
 						return false;
 					}
-				}
-				if (src.includes('minimap.js') || node.innerHTML.toString().includes('cicklow_XcVCCW')) {
+				} else if (src.includes('minimap.js') || node.innerHTML.toString().includes('cicklow_XcVCCW')) {
+					node.type = 'javascript/blocked';
+					node.parentElement.removeChild(node);
+				} else if (src.includes('api.adinplay.com')) {
 					node.type = 'javascript/blocked';
 					node.parentElement.removeChild(node);
 				}
@@ -52,7 +56,6 @@ class User {
 		this.started = false;
 		this.x = this.y = 0;
 		this.mouseInt = -1;
-		this.byteLen = 0;
 		this.server = '';
 		this.ws = null;
 		this.connect();
@@ -81,7 +84,6 @@ class User {
 			json.type = "updatePos";
 			json.x = this.x;
 			json.y = this.y;
-			json.byteLen = this.byteLen;
 
 			this.send(json);
 
@@ -223,14 +225,11 @@ if (location.host.includes('agma.io') || location.host.includes('cellcraft.io'))
             else pkt = new DataView(pkt.buffer);
             switch (pkt.getUint8(0, true)) {
                 case 16:
-                    client.byteLen = pkt.byteLength;
-
                     switch (pkt.byteLength) {
                         case 13:
-                        case 9:
-                            client.x = pkt.getInt32(1, true);
-                            client.y = pkt.getInt32(5, true);
-                            break;
+                            client.x = pkt.getUint32(1, true);
+                            client.y = pkt.getUint32(5, true);
+							break;
                         case 21:
                             client.x = pkt.getFloat64(1, true);
                             client.y = pkt.getFloat64(9, true);
@@ -262,14 +261,11 @@ if (location.host.includes('agma.io') || location.host.includes('cellcraft.io'))
             else pkt = new DataView(pkt.buffer);
             switch (pkt.getUint8(0, true)) {
                 case 16:
-                    client.byteLen = pkt.byteLength;
-
                     switch (pkt.byteLength) {
                         case 13:
-                        case 9:
-                            client.x = pkt.getInt32(1, true);
-                            client.y = pkt.getInt32(5, true);
-                            break;
+                            client.x = pkt.getUint32(1, true);
+                            client.y = pkt.getUint32(5, true);
+							break;
                         case 21:
                             client.x = pkt.getFloat64(1, true);
                             client.y = pkt.getFloat64(9, true);

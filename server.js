@@ -1,28 +1,21 @@
 import WebSocket from 'ws';
 import { scrapeProxys } from  "./modules/proxyManager.js"
 import { Client } from  "./modules/userModule.js"
-import { Bot } from  "./modules/botModule.js"
+import config from './config.js';
 import * as fs from 'fs';
 
-let config = {};
+console.log('Bots maintained by DaRealSh0T and keksbyte');
+
 const wss = new WebSocket.Server({
 	port: 3523
 });
 wss.on('listening', (ws) => {
-    readConfig()
+    scrapeProxys(config.useProxyApi);
 })
 wss.on('connection', (ws, req) => {
-	ws.Client = new Client(ws, req, Bot);
+	ws.Client = new Client(ws, req);
 });
 
-function readConfig(){
-    fs.readFile('./config.json', (err, data) => {
-        let text = Buffer.from(data).toString();
-        config = JSON.parse(text);
-        scrapeProxys(config.useProxyApi);
-    });
-}
-
-export function getConfig(){
+export function getConfig() {
     return config;
 }

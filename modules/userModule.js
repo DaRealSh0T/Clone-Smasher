@@ -1,10 +1,9 @@
 let connectedUsers = 0;
 import { getConfig } from  "../server.js"
  class Client {
-	constructor(ws, req, botMod) {
+	constructor(ws, req) {
 		this.origin = req.headers.origin;
 		this.botConnectInt = [];
-        this.botMod = botMod;
 		this.started = false;
 		this.bots = [];
 		this.ws = ws;
@@ -13,13 +12,22 @@ import { getConfig } from  "../server.js"
 		console.log(`A user has connected! Connected users: ${connectedUsers}`);
 	}
 
-	setup() {
+	async setup() {
 		this.ws.on('message', this.onmessage.bind(this));
 		this.ws.on('close', this.onclose.bind(this));
 		this.ws.on('error', this.onerror.bind(this));
 		for (let i = 0; i < getConfig().maxBots; i++)
-			this.bots.push(new this.botMod(this.origin));
+			this.bots.push(new ((await import(`./games/${this.botMod}`)).Bot)(this.origin));
 		this.startBotCount();
+	}
+
+	get botMod() {
+		switch (true) {
+			case /imbig.pro/.test(this.origin):
+			case /myagar.pro/.test(this.origin):
+				return 'proto6.js';
+		}
+		return 'proto5.js';
 	}
 
 	onmessage(message) {
@@ -36,12 +44,12 @@ import { getConfig } from  "../server.js"
 				break;
 
 			case 'updatePos':
-				this.sendBotPos(json.x, json.y, json.byteLen);
+				this.sendBotPos(json.x, json.y);
 				break;
 
 			case 'split':
 				this.bots.forEach(bot => {
-					bot.send(Buffer.from([17]));
+					bot.split();
 				});
 				break;
 
@@ -53,32 +61,15 @@ import { getConfig } from  "../server.js"
 
 			case 'eject':
 				this.bots.forEach(bot => {
-					bot.send(Buffer.from([21]));
-					bot.send(Buffer.from([36]));
+					bot.eject();
 				});
 				break;
 		}
 	}
 
-	sendBotPos(x, y, byteLen) {
-		if (!byteLen) return;
-		let mouseBuffer = Buffer.alloc(byteLen);
-
-		mouseBuffer.writeUInt8(16, 0);
-		switch (byteLen) {
-			case 13:
-			case 9:
-				mouseBuffer.writeInt32LE(x, 1);
-				mouseBuffer.writeInt32LE(y, 5);
-				break;
-			case 21:
-				mouseBuffer.writeDoubleLE(x, 1);
-				mouseBuffer.writeDoubleLE(y, 9);
-				break;
-		}
-
+	sendBotPos(x, y) {
 		this.bots.forEach(bot => {
-			bot.send(mouseBuffer);
+			bot.mouse(x, y);
 		});
 	}
 
