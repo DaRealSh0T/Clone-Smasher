@@ -2,12 +2,16 @@ import axios from 'axios';
 import ProxyAgent from 'proxy-agent';
 import * as fs from 'fs';
 
-let allProxyAgents = [];
 let proxyAgents = [];
 export function getProxy() {
-    if(proxyAgents.length == 0) proxyAgents = allProxyAgents;
-    return proxyAgents.shift();
+    let proxy = proxyAgents.shift();
+    proxyAgents.push(proxy);
+    return proxy;
 }
+
+setInterval(() => {
+    proxyAgents = proxyAgents.sort(() => Math.random() - 0.5)
+}, 1e4);
 
 export function scrapeProxys(scrape) {
     return new Promise(async (resolve, reject) => {
@@ -19,7 +23,7 @@ export function scrapeProxys(scrape) {
             if (!data) return resolve(await scrapeProxys(false));
             let proxies = data.replace(/\r/g, '').split('\n');
             proxies.forEach(proxy => {
-                allProxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
+                proxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
             });
             console.log(`Got ${proxies.length} proxies!`);
             resolve(proxies);
@@ -27,7 +31,7 @@ export function scrapeProxys(scrape) {
             fs.readFile('./proxies.txt', (err, data) => {
                 let proxies = data.toString().replace(/\r/g, '').split('\n');
                 proxies.forEach(proxy => {
-                    allProxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
+                    proxyAgents.push(new ProxyAgent(`socks4://${proxy}`));
                 });
                 console.log(`Got ${proxies.length} proxies!`);
                 resolve(proxies);
