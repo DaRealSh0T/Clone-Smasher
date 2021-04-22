@@ -11,6 +11,7 @@
   "license": "AGPL-3.0-only",
   "dependencies": {
     "axios": "^0.21.1",
+    "es6-promisify": "^6.1.1",
     "fs": "0.0.1-security",
     "proxy-agent": "^4.0.1",
     "request": "^2.88.2",
