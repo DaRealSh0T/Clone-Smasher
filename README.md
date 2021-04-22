@@ -5,8 +5,8 @@ The best agario clone bots
 REQUIREMENTS
 ------------
 
-Node.js (v15 and above)<br/>
-Tampermonkey
+[Node.js (v15 and above)](https://nodejs.org/en/)<br/>
+[Tampermonkey](https://www.tampermonkey.net/)
 
 INSTALLATION
 ------------
