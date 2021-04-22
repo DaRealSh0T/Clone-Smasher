@@ -5,12 +5,12 @@ The best agario clone bots
 REQUIREMENTS
 ------------
 
-Node.js (v15 and above)
+Node.js (v15 and above)<br/>
 Tampermonkey
 
 INSTALLATION
 ------------
-To install all the required modules for the server after you have installed Node.js v15 or above, you can simply go to the start folder and run the install file according to your operating system.
+To install all the required modules for the server after you have installed Node.js v15 or above, you can simply go to the start folder and run the install file according to your operating system.<br/>
 To install the script go to tampermonkey, create new script, and remove the default code and replace it with client.js.
 
 CONFIGURATION
