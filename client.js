@@ -6,6 +6,7 @@
 // @author       DaRealSh0T & keksbyte
 // @match        *imbig.pro/*
 // @match        *myagar.pro/web/*
+// @match        *agma.io/*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
@@ -224,16 +225,12 @@ if (location.host.includes('agma.io') || location.host.includes('cellcraft.io'))
             else if (pkt instanceof DataView) pkt = pkt;
             else pkt = new DataView(pkt.buffer);
             switch (pkt.getUint8(0, true)) {
-                case 16:
+                case 0:
                     switch (pkt.byteLength) {
-                        case 13:
-                            client.x = pkt.getUint32(1, true);
-                            client.y = pkt.getUint32(5, true);
+                        case 9:
+                            client.x = pkt.getInt32(1, true);
+                            client.y = pkt.getInt32(5, true);
 							break;
-                        case 21:
-                            client.x = pkt.getFloat64(1, true);
-                            client.y = pkt.getFloat64(9, true);
-                            break;
                     }
                     break;
             }
@@ -245,6 +242,7 @@ if (location.host.includes('agma.io') || location.host.includes('cellcraft.io'))
 	});
 	window.addEventListener('load', () => {
 		client = new User();
+        document.addEventListener('keydown', client.keyDown.bind(client));
     });
 } else {
     window.addEventListener("load", () => {

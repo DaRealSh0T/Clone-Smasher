@@ -60,7 +60,7 @@ class Bot {
 	}
 
 	sendChat(message) {
-		let chatBuffer = Buffer.alloc(2 + message.length * 2);
+		let chatBuffer = Buffer.alloc(2 + Buffer.byteLength(message, 'ucs2'));
 		chatBuffer.writeUInt8(99, 0);
 		chatBuffer.write(message, 2, 'ucs2');
 		this.send(chatBuffer);

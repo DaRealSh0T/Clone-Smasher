@@ -23,6 +23,8 @@ import { getConfig } from  "../server.js"
 
 	get botMod() {
 		switch (true) {
+			case /agma.io/.test(this.origin):
+				return 'agma.js';
 			case /imbig.pro/.test(this.origin):
 			case /myagar.pro/.test(this.origin):
 				return 'proto6.js';
