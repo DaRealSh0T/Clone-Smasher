@@ -1,4 +1,5 @@
 # Clone-Smasher
+AGMA.IO BOTS PATCHED! WE ARE WORKING ON A FIX
 The best agario clone bots
 
 

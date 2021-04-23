@@ -169,7 +169,7 @@ class Agma {
 	constructor() {
 		this.reset();
 	}
-
+//changed!
 	get array() {
 		var o = '~9B\\x$';
 		return [
@@ -181,6 +181,10 @@ class Agma {
 			o.charCodeAt(5),
 		];
 	}
+
+    castStringToViewportOption(arg) {
+        return 2 == arg ? "eGJveE9yUHM0Pw==" : 5 * 1 + 2 * arg;
+      }
 
 	getCookie(proxy) {
 		return new Promise(async (resolve, reject) => {
@@ -211,7 +215,7 @@ class Agma {
 						data: JSON.stringify({
 							cv: 4 * this.chunkOffset,
 							ch: 50,
-							ccv: this.chunkOffset + 1,
+							ccv: this.chunkOffset,//+1
 							vv: Agma.key,
 						}),
 					});
@@ -259,13 +263,14 @@ class Agma {
 		num = num.toString();
 
 		var ksksksv = Buffer.from('sup,sora?', 'utf-8');
-		ksksksv[5] -= 0x07;
-		var vkx = ksksksv.toString().substr(4, 2);
-		var cos = vkx.charCodeAt(0);
-		var blockGap = +(1 + 5 + 2 * cos);
+	//	ksksksv[5] -= 0x07;
+	//	var vkx = ksksksv.toString().substr(4, 2);
+        ksksksv = this.castStringToViewportOption(2);
+        var vkx = ksksksv.toString().substr(2, 4);
+		var blockGap = this.castStringToViewportOption(vkx.charCodeAt(0));
 		var progress = 0;
 		if (!isNaN(num)) {
-			if (5 < num.length) {
+			if (5 < (num = "" + num).length) {
 				var right = num.substr(0, 5);
 				var date = num.substr(5);
 				if (!isNaN(right) && !isNaN(date)) {
@@ -291,14 +296,22 @@ class Agma {
 		this.chunkOffset = ~~(5535 + 6e4 * Math.random()) + 1;
 		this.numChars = 5;
 		this.getWidth = -1;
-		this.selector = 60;
+        this.scale = 1;
+		this.selector = 50;//60?
 		this.label = 0;
+        this.top = 0;
+        this.val = 0;
 	}
+
+    /*parseInt() {
+        this.val = lastMouseX / this.scale + width - offset;
+        this.top = lastMouseY / this.scale + height - dy;
+      }*/
 
 	round(buffer, offset, length, n) {
 		if (offset + length > buffer.byteLength) length = 0;
 
-		var s = 12346578 + n;
+		var s = 12345678 + n;
 		var i = 0;
 		for (; length > i; i++) s = s + buffer.readUInt8(offset + i) * (i + 1);
 		return s;
@@ -338,15 +351,15 @@ class Agma {
 	}
 
 	static get ext_port() {
-		return 0x1a;
+		return 27;
 	}
 
 	static get key() {
-		return 0x7d;
+		return 125;
 	}
 
 	static get emgaa() {
-		return 'bbhnf';
+		return "Agma!";
 	}
 }
 

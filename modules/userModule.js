@@ -25,6 +25,10 @@ import { getConfig } from  "../server.js"
 		switch (true) {
 			case /agma.io/.test(this.origin):
 				return 'agma.js';
+			case /agarix.ru/.test(this.origin):
+				return 'agarix.js';
+			case /petridish.pw/.test(this.origin):
+				return 'petridish.js';
 			case /imbig.pro/.test(this.origin):
 			case /myagar.pro/.test(this.origin):
 				return 'proto6.js';
