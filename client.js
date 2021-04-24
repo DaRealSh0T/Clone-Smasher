@@ -4,8 +4,6 @@
 // @version      1.0.1
 // @description  The BEST agar clone bots!
 // @author       DaRealSh0T & keksbyte
-// @match        *imbig.pro/*
-// @match        *myagar.pro/web/*
 // @match        *agma.io/*
 // @grant        none
 // @run-at       document-start

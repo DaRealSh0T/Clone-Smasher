@@ -21,6 +21,7 @@ class Bot {
 		this.stopped = false;
 		this.ip = ip;
 		this.agma.reset();
+		this.proxy = getProxy();
 		const cookie = await this.agma.getCookie(this.proxy).catch(() => null);
 		if (!cookie) return this.onclose();
 		this.ws = new WebSocket(ip, {
@@ -115,6 +116,7 @@ class Bot {
 				if (date === key && this.agma.selector < 70) {
 					this.agma.selector += 40;
 					this.agma.getWidth = date;
+					this.agma.getWidth--;
 					let buf = this.agma.replace(0);
 					if (buf) this.send(buf);
 				} else {
@@ -169,7 +171,7 @@ class Agma {
 	constructor() {
 		this.reset();
 	}
-//changed!
+
 	get array() {
 		var o = '~9B\\x$';
 		return [
@@ -182,10 +184,6 @@ class Agma {
 		];
 	}
 
-    castStringToViewportOption(arg) {
-        return 2 == arg ? "eGJveE9yUHM0Pw==" : 5 * 1 + 2 * arg;
-      }
-
 	getCookie(proxy) {
 		return new Promise(async (resolve, reject) => {
 			let jar = request.jar();
@@ -194,6 +192,7 @@ class Agma {
 				{
 					jar,
 					gzip: true,
+					//agent: proxy,
 					headers: {
 						authority: 'agma.io',
 						'cache-control': 'max-age=0',
@@ -210,12 +209,12 @@ class Agma {
 					},
 				},
 				(err, req, res) => {
-					if (err) return reject(console.log(err));
+					if (err) return reject();
 					let form = qs.stringify({
 						data: JSON.stringify({
 							cv: 4 * this.chunkOffset,
-							ch: 50,
-							ccv: this.chunkOffset,//+1
+							ch: this.selector,
+							ccv: this.chunkOffset + 1,
 							vv: Agma.key,
 						}),
 					});
@@ -225,6 +224,7 @@ class Agma {
 						{
 							jar,
 							gzip: true,
+							//agent: proxy,
 							headers: {
 								accept: 'text/plain, */*; q=0.01',
 								'accept-encoding': 'gzip, deflate',
@@ -243,7 +243,7 @@ class Agma {
 							form,
 						},
 						(err, req, body) => {
-							if (err) return reject(console.log(err));
+							if (err) return reject();
 							let cookie = req.request.headers.cookie;
 							this.label = this.readResponse(body.toString());
 							for (var i = 0; i < Agma.emgaa.length; i++)
@@ -263,14 +263,13 @@ class Agma {
 		num = num.toString();
 
 		var ksksksv = Buffer.from('sup,sora?', 'utf-8');
-	//	ksksksv[5] -= 0x07;
-	//	var vkx = ksksksv.toString().substr(4, 2);
-        ksksksv = this.castStringToViewportOption(2);
-        var vkx = ksksksv.toString().substr(2, 4);
-		var blockGap = this.castStringToViewportOption(vkx.charCodeAt(0));
+		//	ksksksv[5] -= 0x07;
+		ksksksv = 'eGJveE9yUHM0Pw==';
+		var vkx = ksksksv.toString().substr(2, 4);
+		var blockGap = 5 + 2 * vkx.charCodeAt(0);
 		var progress = 0;
 		if (!isNaN(num)) {
-			if (5 < (num = "" + num).length) {
+			if (5 < num.length) {
 				var right = num.substr(0, 5);
 				var date = num.substr(5);
 				if (!isNaN(right) && !isNaN(date)) {
@@ -296,17 +295,9 @@ class Agma {
 		this.chunkOffset = ~~(5535 + 6e4 * Math.random()) + 1;
 		this.numChars = 5;
 		this.getWidth = -1;
-        this.scale = 1;
-		this.selector = 50;//60?
+		this.selector = 50;
 		this.label = 0;
-        this.top = 0;
-        this.val = 0;
 	}
-
-    /*parseInt() {
-        this.val = lastMouseX / this.scale + width - offset;
-        this.top = lastMouseY / this.scale + height - dy;
-      }*/
 
 	round(buffer, offset, length, n) {
 		if (offset + length > buffer.byteLength) length = 0;
@@ -319,20 +310,27 @@ class Agma {
 
 	replace(selector) {
 		if (this.getWidth == -1 || selector) return null;
+		this.selector = 100;
 		var buffer = Buffer.alloc(13);
 		buffer.writeUInt8(
 			2 * (this.selector + 30) - ((this.getWidth - 5) % 10) - 5
 		);
 		buffer.writeUInt32LE(
-			~~(this.getWidth / 1.84 + this.selector / 2 - 2 * (selector ? 0.5 : 1)) +
-				~~(
-					~~(
-						21.22 *
-						((~~(this.getWidth + 4.42 * this.chunkOffset + 555) %
-							--this.label) +
-							36360)
-					) / 4.2
-				),
+			~~(
+				this.getWidth / 1.84 +
+				this.selector / 0x2 -
+				0x2 * (selector ? 0.5 : 0x1)
+			) +
+				(_0x528fbc => {
+					return ~~(
+						~~(
+							21.22 *
+							((~~(this.getWidth + 4.42 * this.chunkOffset + 0x22b) %
+								--_0x528fbc) -
+								0x8e08)
+						) / 4.2
+					);
+				})(this.label),
 			1
 		);
 		buffer.writeUInt32LE(this.sortDataByVersion + this.numChars, 5);
@@ -351,15 +349,15 @@ class Agma {
 	}
 
 	static get ext_port() {
-		return 27;
+		return 0x1b;
 	}
 
 	static get key() {
-		return 125;
+		return 0x7d;
 	}
 
 	static get emgaa() {
-		return "Agma!";
+		return 'Agma!';
 	}
 }
 
