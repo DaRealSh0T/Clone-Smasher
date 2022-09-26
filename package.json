@@ -13,7 +13,7 @@
     "axios": "^0.21.1",
     "es6-promisify": "^6.1.1",
     "fs": "0.0.1-security",
-    "proxy-agent": "^4.0.1",
+    "proxy-agent": "^5.0.0",
     "request": "^2.88.2",
     "ws": "^6.2.1"
   }
